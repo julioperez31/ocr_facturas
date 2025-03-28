@@ -42,7 +42,7 @@ def pdf_to_jpg(pdf_path, output_folder=None):
             image.save(jpg_path, 'JPEG')
             jpg_paths.append(jpg_path)
             preprocess_image_advanced(jpg_path)
-            start_loading("Analizando PDF", iter, total)
+            start_loading("2. Analizando PDF", iter, total)
             iter +=1
         return jpg_paths
     else:
@@ -64,7 +64,7 @@ def ocr_gpt(images):
     jpeg = []
     iter = 1
     total = len(images)
-    if isinstance(images, list)==False:
+    if not isinstance(images, list):
         jpeg.append(images)
         images = jpeg
     for i in images:
@@ -78,7 +78,7 @@ def ocr_gpt(images):
         }
 
         payload = {
-            "model": "gpt-4o-mini",
+            "model": "gpt-4o",
             "messages": [
                 {
                     "role": "user",
@@ -104,10 +104,11 @@ def ocr_gpt(images):
             ],
             "max_tokens": 1024,
             "n": 1,
-            "temperature": 0.25
+            "temperature": 0.5
         }
 
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+        print(response.json())
         text_json = response.json()['choices'][0]['message']['content']
         output = [text_json.split(': ')]
         compania.append(output[0][1].replace("RNC", "").replace("DEL EMISOR O PROVEEDOR", "").replace("DEL EMISOR", "").strip())
@@ -116,7 +117,7 @@ def ocr_gpt(images):
         fecha_emision.append(output[0][4].replace("Subtotal ITBIS", "").replace("Subtotal del ITBIS", "").strip())
         sub_itbis.append(output[0][5].replace("Subtotal Valor", "").replace("Subtotal valor", "").replace("Subtotal del valor", "").replace("Subtotal", "").strip())
         sub_valor.append(output[0][6].strip())
-        start_loading("Analizando Facturas", iter, total)
+        start_loading("3. Analizando Facturas", iter, total)
         iter += 1
         os.remove(i)
 
@@ -152,7 +153,7 @@ def get_and_print_filename():
         new_file_path = os.path.join(new_folder_path, filename)
 
         try:
-            loading_label.config(text="Iniciando Proceso")
+            loading_label.config(text=f"1. Iniciando Proceso para el archivo {filename}.")
             root.update()
             os.makedirs(new_folder_path, exist_ok=True)  # creates folder, no error if it exists.
             shutil.copy(filepath, new_file_path)
